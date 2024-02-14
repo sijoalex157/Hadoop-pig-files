@@ -1,0 +1,73 @@
+movies_data = LOAD 'movies.txt' USING PigStorage('|') AS (movie_id:int, movie_title:chararray, release_year:int, imdb_url:chararray);
+DESCRIBE movies_data;
+
+
+
+
+DUMP movies_data;
+
+
+
+
+
+old_movies = FILTER movies_data BY release_year < 2000;
+DUMP old_movies;
+
+
+
+
+movies_by_year = GROUP movies_data BY release_year;
+movies_count_by_year = FOREACH movies_by_year GENERATE group AS release_year, COUNT(movies_data) AS num_movies;
+DUMP movies_count_by_year;
+
+
+
+
+oldest_movie = ORDER movies_data BY release_year ASC;
+oldest_movie = LIMIT oldest_movie 1;
+DUMP oldest_movie;
+
+
+
+
+avg_release_year = FOREACH (GROUP movies_data ALL) GENERATE AVG(movies_data.release_year) AS avg_release_year;
+DUMP avg_release_year;
+
+
+
+
+movies_data_with_year = FOREACH movies_data GENERATE movie_id, movie_title, release_year, REGEX_EXTRACT(imdb_url, '.*tt\\d{7}/(\\d{4})', 1) AS imdb_year;
+DUMP movies_data_with_year;
+
+
+
+
+
+
+long_title_movies = FILTER movies_data BY SIZE(movie_title) > 20;
+DUMP long_title_movies;
+
+
+
+
+
+sorted_movies = ORDER movies_data BY movie_title ASC;
+DUMP sorted_movies;
+
+
+
+
+STORE movies_data INTO 'output/movies_data' USING PigStorage('|');
+
+
+
+
+movies_with_numbers = FILTER movies_data BY REGEX_EXTRACT(movie_title, '\\d+', 0) IS NOT NULL;
+DUMP movies_with_numbers;
+
+
+
+
+
+avg_url_length = FOREACH (GROUP movies_data ALL) GENERATE AVG(SIZE(imdb_url)) AS avg_url_length;
+DUMP avg_url_length;
